@@ -1,0 +1,25 @@
+import turtle as T
+T.setup(640, 640)
+T.Screen()
+T.title("Turtle Keys")
+move = T.Turtle()
+T.showturtle()
+
+move.forward(100)
+move.left(90)
+move.forward(200)
+move.left(90)
+move.forward(200)
+move.left(90)
+move.forward(200)
+move.left(90)
+move.forward(100)
+
+move.right(90)
+move.forward(100)
+move.left(90)
+move.forward(50)
+move.right(180)
+move.forward(100)
+
+T.mainloop()

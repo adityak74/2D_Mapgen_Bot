@@ -2,9 +2,6 @@
 # This module can be used to operate an HC-SR04 ultrasonic sensor
 # from a raspberry pi GPIO.
 
-import time
-import RPi.GPIO as GPIO
-
 # setup which pins are which
 TRIG = 8
 ECHO = 7
@@ -65,6 +62,7 @@ def measure_average_time():
     return total_time / measuretimes
         
 def distance_cm():
+    configure(TRIG, ECHO)
     time = measure_average_time()
     if time < 0:
         return -1
@@ -72,30 +70,30 @@ def distance_cm():
         return time * (1000000 / 58)
 
 
-if __name__ == "__main__":
-    print "Starting ultrasound test"
-    # Set up the GPIO board
-    GPIO.setmode(GPIO.BOARD)
+# if __name__ == "__main__":
+#     print "Starting ultrasound"
+#     # Set up the GPIO board
+#     GPIO.setmode(GPIO.BOARD)
 
-    # Tell the Pi which pins the ultrasound is on
-    configure(TRIG, ECHO)
+#     # Tell the Pi which pins the ultrasound is on
+#     configure(TRIG, ECHO)
 
-    try:
-        while True:
-            distance = distance_cm()
-            if distance < 0:
-                tm = 0 # print "Timeout"
-            else:
-		val = ""
-		space = "-"
-		disanceround = (int(round(distance)))
-		for num in range(0,disanceround):
-			val += space
-		#print val
-		print ("%.0f cm " % (int(round(distance))))+val+">"
-            time.sleep(sleeptime)
+#     try:
+#         while True:
+#             distance = distance_cm()
+#             if distance < 0:
+#                 tm = 0 # print "Timeout"
+#             else:
+# 		val = ""
+# 		space = "-"
+# 		disanceround = (int(round(distance)))
+# 		for num in range(0,disanceround):
+# 			val += space
+# 		#print val
+# 		print ("%.0f cm " % (int(round(distance))))+val+">"
+#             time.sleep(sleeptime)
 
-    except KeyboardInterrupt:
-        print "Stopping"
-        GPIO.cleanup()
+#     except KeyboardInterrupt:
+#         print "Stopping"
+#         GPIO.cleanup()
 
