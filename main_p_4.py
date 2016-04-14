@@ -8,6 +8,7 @@ import sys
 from ultrasound import *
 import os
 import logging
+from PIL import Image
 import socket
 import fcntl
 import struct
@@ -125,10 +126,13 @@ def right():
 def map2d():
 	ts = tc.getscreen()
 	ts.getcanvas().postscript(file='map_'+ timestamp +'.eps', colormode='color')
+	img = Image.open('map_'+ timestamp +'.eps')
+	img.save('map_' + timestamp + '.png', "png")
+	os.remove('map_'+ timestamp +'.eps')
 	os.system("cp "+ logname  +" /var/www/map_images/")
-	os.system("cp map_"+ timestamp +".eps /var/www/map_images/")
+	os.system("cp map_"+ timestamp +".png /var/www/map_images/")
 	print "http://" + get_ip_address('wlan0') + '/map_images/' + logname
-	print "http://" + get_ip_address('wlan0') + '/map_images/map_' + timestamp + '.eps' 
+	print "http://" + get_ip_address('wlan0') + '/map_images/map_' + timestamp + '.png' 
 
 
 def bot_scan():
