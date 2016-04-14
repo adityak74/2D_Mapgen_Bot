@@ -8,11 +8,15 @@ import sys
 from ultrasound import *
 import os
 import logging
+import socket
+import fcntl
+import struct
 from time import gmtime, strftime
 
-
-timestamp=strftime("%Y-%m-%d_%H:%M:%S", gmtime())
-logname='bot_'+timestamp
+os.environ['TZ'] = 'Asia/Kolkata'
+time.tzset()
+timestamp=strftime("%Y-%m-%d_%H:%M:%S", time.localtime())
+logname='bot_'+timestamp+'.log'
 logging.basicConfig(filename=logname,level=logging.DEBUG)
 
 setup(640, 640)
@@ -34,6 +38,14 @@ tracer(1, 0)
 
 
 leftsonar,rightsonar,frontsonar=0,0,0
+
+def get_ip_address(ifname):
+	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	return socket.inet_ntoa(fcntl.ioctl(
+		s.fileno(),
+		0x8915,  # SIOCGIFADDR
+		struct.pack('256s', ifname[:15])
+	)[20:24])
 
 def border():
 	tl.pendown()
@@ -69,8 +81,8 @@ def forward():
 			tl.setpos(a,b-leftsonar)
 			tr.setpos(a,b+rightsonar)
 			border()
-	    #print int(a),int(b)
-	logging.info('strftime("%Y-%m-%d %H:%M:%S", gmtime())'+'Forward'+'(front dist:' + str(frontsonar) + 'left dist:' + str(leftsonar) + 'right dist:' + str(rightsonar)+')')
+	#print int(a),int(b)
+	logging.info(strftime("%Y-%m-%d %H:%M:%S", time.localtime())+',Forward'+'(front dist:' + str(frontsonar) + ',Left dist:' + str(leftsonar) + ',Right dist:' + str(rightsonar)+')')
 	# Yaha par sonar ka left, right and front value print hoga 
 
 def down():
@@ -91,7 +103,7 @@ def down():
 		tr.setpos(a,b+rightsonar)
 		border()
     	#print int(a),int(b)
-    logging.info('strftime("%Y-%m-%d %H:%M:%S", gmtime())' + 'back' + '15 cm') #Yaha par standard distance print kar back dabana par kitna back jata hai zameen par uska kitna hai usko scale down kar yaha par print kar kyunki back me apna koi sonar ni hai 
+	logging.info(strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + 'Back' + '15 cm') #Yaha par standard distance print kar back dabana par kitna back jata hai zameen par uska kitna hai usko scale down kar yaha par print kar kyunki back me apna koi sonar ni hai 
 
 
 def left():
@@ -99,30 +111,42 @@ def left():
 	tc.left(90)
 	tl.left(90)
 	tr.left(90)
-	logging.info('strftime("%Y-%m-%d %H:%M:%S", gmtime())' + 'Left'+'(front dist:' + str(frontsonar) + 'left dist:' + str(leftsonar) + 'right dist:' + str(rightsonar)+')')
+	logging.info(strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + ',Left'+'(front dist:' + str(frontsonar) + ',Left dist:' + str(leftsonar) + ',Right dist:' + str(rightsonar)+')')
 
 def right():
 	motor_right()
 	tc.right(90)
 	tl.right(90)
 	tr.right(90)
-	logging.info('strftime("%Y-%m-%d %H:%M:%S", gmtime())' + 'Right'+'(front dist:' + str(frontsonar) + 'left dist:' + str(leftsonar) + 'right dist:' + str(rightsonar)+')')
+	logging.info(strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + ',Front'+'(front dist:' + str(frontsonar) + ',Left dist:' + str(leftsonar) + ',Right dist:' + str(rightsonar)+')')
 
 
 
 def map2d():
-	ts = move.getscreen()
-	ts.getcanvas().postscript(file='turtle.eps', colormode='color')
-	os.system("cp logname.log /var/www/map_images/")
-	os.system("cp turtle.eps /var/www/map_images/")
-	os.system("chmod 777 -R /var/www/map_images/")# Yeh command mujhe doubt hai chalega kyunki uske lie tere ko root hona padega. Try karke dekh ni challa to thoda net par dekh lena even pehle wale bhi opt me copy tabhi hota hai jab root ho aise copy ni hota hai woh .
+	ts = tc.getscreen()
+	ts.getcanvas().postscript(file='map_'+ timestamp +'.eps', colormode='color')
+	os.system("cp "+ logname  +" /var/www/map_images/")
+	os.system("cp map_"+ timestamp +".eps /var/www/map_images/")
+	print "http://" + get_ip_address('wlan0') + '/map_images/' + logname
+	print "http://" + get_ip_address('wlan0') + '/map_images/map_' + timestamp + '.eps' 
 
 
 def bot_scan():
 	global frontsonar,leftsonar,rightsonar
-	frontsonar = distance_cm(8,7)
-	leftsonar  = distance_cm(8,31)
-	rightsonar = distance_cm(8,29)
+	sensor_values_front = list()
+	sensor_values_left = list()
+	sensor_values_right = list()
+	for x in range(0,10):
+		val = distance_cm(8,7)
+		sensor_values_front.append(val)
+		val = distance_cm(8,31)
+		sensor_values_left.append(val)
+		val = distance_cm(8,29)
+		sensor_values_right.append(val)
+		
+	frontsonar = sum(sensor_values_front)/float(len(sensor_values_front))
+	leftsonar  = sum(sensor_values_left)/float(len(sensor_values_left))
+	rightsonar = sum(sensor_values_right)/float(len(sensor_values_right))
 	
 onkey(forward, "Up")
 onkey(left, "Left")
