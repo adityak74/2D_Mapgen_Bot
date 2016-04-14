@@ -61,11 +61,11 @@ def measure_average_time():
         count = count + 1
     return total_time / measuretimes
         
-def distance_cm():
-    configure(TRIG, ECHO)
+def distance_cm(trig, echo):
+    configure(trig, echo)
     time = measure_average_time()
     if time < 0:
-        return -1
+        return 50
     else:
         return time * (1000000 / 58)
 
